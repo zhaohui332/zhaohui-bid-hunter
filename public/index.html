@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>兆辉投标情报台</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">兆</div>
+      <div class="brand-text">
+        <h1>防腐装备投标情报台</h1>
+        <p>江苏兆辉防腐科技</p>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-view="home"><i data-lucide="layout-dashboard"></i><span>今日情报</span></button>
+      <button class="tab" data-view="leads"><i data-lucide="list-filter"></i><span>线索库</span></button>
+      <button class="tab" data-view="sources"><i data-lucide="plug-zap"></i><span>数据源</span></button>
+      <button class="tab" data-view="settings"><i data-lucide="settings-2"></i><span>采集设置</span></button>
+      <button class="tab" data-view="runs"><i data-lucide="history"></i><span>运行记录</span></button>
+    </nav>
+    <div class="top-actions">
+      <button id="runNow" class="btn btn-primary"><i data-lucide="refresh-cw"></i><span>立即采集</span></button>
+      <a id="exportCsv" class="btn btn-ghost" href="./api/export.csv"><i data-lucide="download"></i><span>导出CSV</span></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="view-home" class="view active">
+      <div class="section-head">
+        <div>
+          <h2>今日情报</h2>
+          <p id="homeDate"></p>
+        </div>
+        <span id="scanningBadge" class="scanning-badge">待机</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat"><span class="stat-label">今日新增</span><strong id="statToday">0</strong><span class="stat-note">条线索</span></div>
+        <div class="stat"><span class="stat-label">待跟进</span><strong id="statNew">0</strong><span class="stat-note">条未处理</span></div>
+        <div class="stat"><span class="stat-label">已收藏</span><strong id="statStarred">0</strong><span class="stat-note">条重点</span></div>
+        <div class="stat"><span class="stat-label">线索总数</span><strong id="statTotal">0</strong><span class="stat-note">条入库</span></div>
+      </div>
+      <div class="home-layout">
+        <section class="panel">
+          <div class="panel-head"><h3>最新线索</h3><span id="homeTotal"></span></div>
+          <div id="homeList" class="lead-list"></div>
+        </section>
+        <aside class="side-stack">
+          <section class="panel">
+            <div class="panel-head"><h3>数据源状态</h3></div>
+            <div id="sourceStatus" class="source-status"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>下次采集</h3></div>
+            <div id="nextRun" class="next-run"></div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-leads" class="view">
+      <div class="section-head">
+        <div><h2>线索库</h2><p>所有采集到的项目、采购和公告</p></div>
+      </div>
+      <div class="toolbar">
+        <div class="field search-field"><i data-lucide="search"></i><input id="leadSearch" placeholder="标题 / 企业 / 摘要"></div>
+        <select id="leadSource" class="field select-field">
+          <option value="">全部来源</option>
+          <option value="中能联合">中能联合</option>
+          <option value="全国招标公共服务平台">全国招标公共服务平台</option>
+          <option value="中国化学电子招标平台">中国化学电子招标平台</option>
+          <option value="全网搜索">全网搜索</option>
+        </select>
+        <select id="leadStatus" class="field select-field">
+          <option value="">全部状态</option>
+          <option value="new">待跟进</option>
+          <option value="viewed">已查看</option>
+          <option value="following">跟进中</option>
+          <option value="quoted">已报价</option>
+          <option value="closed">已关闭</option>
+        </select>
+        <input type="date" id="leadDateFrom" class="field" aria-label="开始日期">
+        <input type="date" id="leadDateTo" class="field" aria-label="结束日期">
+        <button id="leadReset" class="btn btn-ghost"><i data-lucide="eraser"></i><span>清空</span></button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>标题 / 企业</th>
+              <th>来源 / 类型</th>
+              <th>地区</th>
+              <th>日期</th>
+              <th>匹配</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="leadTable"></tbody>
+        </table>
+      </div>
+      <div id="leadPager" class="pager"></div>
+    </section>
+
+    <section id="view-sources" class="view">
+      <div class="section-head">
+        <div><h2>数据源</h2><p>登录会话与采集开关</p></div>
+      </div>
+      <div class="source-grid">
+        <article class="source-card">
+          <div class="source-card-head">
+            <div class="source-icon">联</div>
+            <div class="source-title"><h3>中能联合</h3><p>cceup.com 项目托管 / 项目采购</p></div>
+            <span id="cceupState" class="state-pill">未登录</span>
+          </div>
+          <div class="credential-row">
+            <input id="cceupUsername" class="field" placeholder="账号">
+            <input id="cceupPassword" class="field" type="password" placeholder="密码">
+            <button class="btn btn-ghost" data-save-creds="cceup"><i data-lucide="save"></i><span>保存账号</span></button>
+          </div>
+          <div class="source-actions">
+            <button class="btn btn-primary" data-login="cceup"><i data-lucide="log-in"></i><span>打开登录</span></button>
+            <button class="btn btn-ghost" data-capture="cceup"><i data-lucide="camera"></i><span>完成并保存会话</span></button>
+            <button class="btn btn-ghost danger" data-logout="cceup"><i data-lucide="log-out"></i><span>清除会话</span></button>
+          </div>
+        </article>
+        <article class="source-card">
+          <div class="source-card-head">
+            <div class="source-icon">企</div>
+            <div class="source-title"><h3>企查查</h3><p>qcc.com 企业信息补充</p></div>
+            <span id="qccState" class="state-pill">未登录</span>
+          </div>
+          <div class="credential-row">
+            <input id="qccUsername" class="field" placeholder="账号">
+            <input id="qccPassword" class="field" type="password" placeholder="密码">
+            <button class="btn btn-ghost" data-save-creds="qcc"><i data-lucide="save"></i><span>保存账号</span></button>
+          </div>
+          <div class="source-actions">
+            <button class="btn btn-primary" data-login="qcc"><i data-lucide="log-in"></i><span>打开登录</span></button>
+            <button class="btn btn-ghost" data-capture="qcc"><i data-lucide="camera"></i><span>完成并保存会话</span></button>
+            <button class="btn btn-ghost danger" data-logout="qcc"><i data-lucide="log-out"></i><span>清除会话</span></button>
+          </div>
+        </article>
+        <article class="source-card">
+          <div class="source-card-head">
+            <div class="source-icon">化</div>
+            <div class="source-title"><h3>中国化学电子招标平台</h3><p>bid.cncecyc.com 招标 / 采购 / 成交公告</p></div>
+            <span id="cncecycState" class="state-pill">未登录</span>
+          </div>
+          <div class="credential-row">
+            <input id="cncecycUsername" class="field" placeholder="账号">
+            <input id="cncecycPassword" class="field" type="password" placeholder="密码">
+            <button class="btn btn-ghost" data-save-creds="cncecyc"><i data-lucide="save"></i><span>保存账号</span></button>
+          </div>
+          <div class="source-actions">
+            <button class="btn btn-primary" data-login="cncecyc"><i data-lucide="log-in"></i><span>打开登录</span></button>
+            <button class="btn btn-ghost" data-capture="cncecyc"><i data-lucide="camera"></i><span>完成并保存会话</span></button>
+            <button class="btn btn-ghost danger" data-logout="cncecyc"><i data-lucide="log-out"></i><span>清除会话</span></button>
+            <a class="btn btn-ghost" href="https://bid.cncecyc.com/cms/index.htm" target="_blank" rel="noreferrer"><i data-lucide="external-link"></i><span>打开官网</span></a>
+          </div>
+        </article>
+        <article class="source-card">
+          <div class="source-card-head">
+            <div class="source-icon">滴</div>
+            <div class="source-title"><h3>水滴信用</h3><p>shuidi.cn 企业信息查询</p></div>
+            <span id="shuidiState" class="state-pill">未登录</span>
+          </div>
+          <div class="credential-row">
+            <input id="shuidiUsername" class="field" placeholder="账号">
+            <input id="shuidiPassword" class="field" type="password" placeholder="密码">
+            <button class="btn btn-ghost" data-save-creds="shuidi"><i data-lucide="save"></i><span>保存账号</span></button>
+          </div>
+          <div class="source-actions">
+            <button class="btn btn-primary" data-login="shuidi"><i data-lucide="log-in"></i><span>打开登录</span></button>
+            <button class="btn btn-ghost" data-capture="shuidi"><i data-lucide="camera"></i><span>完成并保存会话</span></button>
+            <button class="btn btn-ghost danger" data-logout="shuidi"><i data-lucide="log-out"></i><span>清除会话</span></button>
+            <a class="btn btn-ghost" href="https://shuidi.cn/" target="_blank" rel="noreferrer"><i data-lucide="external-link"></i><span>打开官网</span></a>
+          </div>
+        </article>
+      </div>
+      <section class="panel toggle-panel">
+        <div class="panel-head"><h3>每日采集来源</h3></div>
+        <div class="toggle-grid">
+          <label class="switch-row"><input type="checkbox" data-source-toggle="cceup"><span>中能联合</span><small>项目托管 + 项目采购</small></label>
+          <label class="switch-row"><input type="checkbox" data-source-toggle="cebpubservice"><span>全国招标公共服务平台</span><small>采购公告 / 变更 / 结果</small></label>
+          <label class="switch-row"><input type="checkbox" data-source-toggle="cncecyc"><span>中国化学电子招标平台</span><small>招标 / 采购 / 成交公告</small></label>
+          <label class="switch-row"><input type="checkbox" data-source-toggle="websearch"><span>搜狗全网搜索</span><small>招标与采购关键词</small></label>
+          <label class="switch-row"><input type="checkbox" data-source-toggle="qcc"><span>企查查企业补充</span><small>自动补充 3 条新线索</small></label>
+          <label class="switch-row"><input type="checkbox" data-source-toggle="shuidi"><span>水滴信用企业补充</span><small>自动补充 3 条新线索</small></label>
+        </div>
+      </section>
+    </section>
+
+    <section id="view-settings" class="view">
+      <div class="section-head">
+        <div><h2>采集设置</h2><p>关键词、调度时间与采集深度</p></div>
+      </div>
+      <form id="settingsForm" class="settings-form">
+        <label class="form-field full">
+          <span>关键词（每行一个）</span>
+          <textarea id="keywordsInput" rows="10"></textarea>
+        </label>
+        <div class="form-grid">
+          <label class="form-field"><span>每日自动采集</span><input type="time" id="scheduleTime"></label>
+          <label class="form-field"><span>自动采集开关</span><select id="scheduleEnabled"><option value="true">开启</option><option value="false">关闭</option></select></label>
+          <label class="form-field"><span>中能联合项目页数</span><input type="number" id="cceupPages" min="1" max="50"></label>
+          <label class="form-field"><span>中能联合采购页数</span><input type="number" id="dockPages" min="1" max="50"></label>
+          <label class="form-field"><span>中国化学页数</span><input type="number" id="cncecycPages" min="1" max="20"></label>
+          <label class="form-field"><span>公开平台回看天数</span><input type="number" id="daysBack" min="1" max="90"></label>
+          <label class="form-field"><span>全网搜索次数</span><input type="number" id="webQueries" min="1" max="20"></label>
+          <label class="form-field"><span>详情联系人抓取</span><input type="number" id="detailLimit" min="0" max="20"></label>
+          <label class="form-field"><span>最低匹配分</span><input type="number" id="minScore" min="1" max="20"></label>
+          <label class="form-field"><span>收录全部化工项目</span><select id="includeAllChemical"><option value="false">仅关键词命中</option><option value="true">化工行业全收</option></select></label>
+        </div>
+        <button class="btn btn-primary" type="submit"><i data-lucide="save"></i><span>保存设置</span></button>
+      </form>
+    </section>
+
+    <section id="view-runs" class="view">
+      <div class="section-head">
+        <div><h2>运行记录</h2><p>每次采集的完成情况</p></div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>开始时间</th><th>状态</th><th>新增</th><th>候选</th><th>来源结果</th><th>日志</th></tr>
+          </thead>
+          <tbody id="runsTable"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="./vendor/lucide.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
