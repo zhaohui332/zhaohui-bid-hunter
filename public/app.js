@@ -27,6 +27,18 @@ const ACCOUNT_LABELS = {
   cncecyc: "中国化学电子招标平台"
 };
 
+const LOGIN_URLS = {
+  cceup: "http://www.cceup.com/login",
+  qcc: "https://www.qcc.com/web/login",
+  shuidi: "https://shuidi.cn/login",
+  cncecyc: "https://supplier.cncecyc.com/tpbidder"
+};
+
+function isRemoteHost() {
+  const host = window.location.hostname;
+  return !["", "localhost", "127.0.0.1", "::1"].includes(host);
+}
+
 function apiBase() {
   return window.APP_BASE || "";
 }
@@ -433,9 +445,20 @@ function bindEvents() {
         showToast("账号已保存在本机");
       } else if (login) {
         const source = login.dataset.login;
-        await api(`/api/accounts/${source}/login`, { method: "POST" });
-        showToast("登录窗口已打开");
+        if (isRemoteHost()) {
+          const url = LOGIN_URLS[source];
+          if (!url) throw new Error("未配置登录地址");
+          window.open(url, "_blank", "noopener,noreferrer");
+          showToast("已打开官网登录页");
+        } else {
+          await api(`/api/accounts/${source}/login`, { method: "POST" });
+          showToast("登录窗口已打开");
+        }
       } else if (capture) {
+        if (isRemoteHost()) {
+          showToast("线上版请在本机登录并保存后，再部署同步会话");
+          return;
+        }
         const source = capture.dataset.capture;
         await api(`/api/accounts/${source}/capture`, { method: "POST" });
         showToast("登录会话已保存");
