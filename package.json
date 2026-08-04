@@ -1,0 +1,14 @@
+{
+  "name": "zhaohui-bid-hunter",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "江苏兆辉防腐科技投标情报采集台",
+  "scripts": {
+    "start": "node server/index.js",
+    "scan": "node server/index.js --scan-once"
+  },
+  "dependencies": {
+    "playwright": "1.61.1"
+  }
+}
