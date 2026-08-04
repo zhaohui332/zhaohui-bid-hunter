@@ -265,6 +265,12 @@ function renderSettings() {
   document.getElementById("detailLimit").value = settings.schedule.detailLimit || 10;
   document.getElementById("minScore").value = settings.filters.minScore || 2;
   document.getElementById("includeAllChemical").value = String(Boolean(settings.filters.includeAllChemical));
+  const notify = settings.notify || {};
+  document.getElementById("notifyEnabled").value = String(Boolean(notify.enabled));
+  document.getElementById("notifyProvider").value = notify.provider || "pushplus";
+  document.getElementById("notifyToken").value = notify.token || "";
+  document.getElementById("notifyWebhook").value = notify.webhook || "";
+  document.getElementById("notifyMax").value = notify.maxLeads || 10;
 }
 
 async function renderRuns() {
@@ -488,6 +494,13 @@ function bindEvents() {
         minScore: Number(document.getElementById("minScore").value) || 2,
         includeAllChemical:
           document.getElementById("includeAllChemical").value === "true"
+      },
+      notify: {
+        enabled: document.getElementById("notifyEnabled").value === "true",
+        provider: document.getElementById("notifyProvider").value,
+        token: document.getElementById("notifyToken").value.trim(),
+        webhook: document.getElementById("notifyWebhook").value.trim(),
+        maxLeads: Number(document.getElementById("notifyMax").value) || 10
       }
     };
     try {
@@ -497,6 +510,26 @@ function bindEvents() {
       });
       await refreshStatus();
       showToast("设置已保存");
+    } catch (error) {
+      showToast(error.message);
+    }
+  });
+
+  document.getElementById("notifyTest").addEventListener("click", async () => {
+    const notify = {
+      enabled: document.getElementById("notifyEnabled").value === "true",
+      provider: document.getElementById("notifyProvider").value,
+      token: document.getElementById("notifyToken").value.trim(),
+      webhook: document.getElementById("notifyWebhook").value.trim(),
+      maxLeads: Number(document.getElementById("notifyMax").value) || 10
+    };
+    try {
+      showToast("正在发送测试通知");
+      const res = await api("/api/notify/test", {
+        method: "POST",
+        body: JSON.stringify({ notify })
+      });
+      showToast(res.ok ? "测试通知已发送" : res.message || "发送失败");
     } catch (error) {
       showToast(error.message);
     }

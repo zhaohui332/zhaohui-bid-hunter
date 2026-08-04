@@ -185,6 +185,14 @@ export function listLeads(db, query = {}) {
     conditions.push("date(release_date) <= date(?)");
     params.push(query.date_to);
   }
+  if (query.created_from) {
+    conditions.push("date(created_at, 'localtime') >= date(?)");
+    params.push(query.created_from);
+  }
+  if (query.created_to) {
+    conditions.push("date(created_at, 'localtime') <= date(?)");
+    params.push(query.created_to);
+  }
 
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
   const page = Math.max(1, parseInt(query.page, 10) || 1);

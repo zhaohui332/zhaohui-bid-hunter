@@ -35,6 +35,8 @@ import { runScanNow, isScanning } from "./scanner.js";
 import { startScheduler, nextRunTime } from "./scheduler.js";
 import { enrichLeadWithQCC } from "./collectors/qcc.js";
 import { enrichLeadWithShuidi } from "./collectors/shuidi.js";
+import { sendTestNotification } from "./notifier.js";
+import { deepMerge } from "./config.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(ROOT, "public");
@@ -195,6 +197,12 @@ async function handleApi(req, res, pathname, url, body) {
   if (pathname === "/api/settings" && method === "POST") {
     const settings = saveSettings(db, body);
     return sendJson(res, 200, { ok: true, data: settings });
+  }
+
+  if (pathname === "/api/notify/test" && method === "POST") {
+    const settings = deepMerge(getSettings(db), body || {});
+    const result = await sendTestNotification(settings);
+    return sendJson(res, result.ok ? 200 : 400, { ok: result.ok, message: result.message });
   }
 
   if (pathname === "/api/run" && method === "POST") {

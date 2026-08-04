@@ -33,6 +33,13 @@ export const DEFAULT_SETTINGS = {
   filters: {
     minScore: 2,
     includeAllChemical: false
+  },
+  notify: {
+    enabled: false,
+    provider: "pushplus",
+    token: "",
+    webhook: "",
+    maxLeads: 10
   }
 };
 

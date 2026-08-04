@@ -9,6 +9,7 @@ import { collectCncecyc } from "./collectors/cncecyc.js";
 import { collectWebsearch } from "./collectors/websearch.js";
 import { enrichNewLeadsWithQCC } from "./collectors/qcc.js";
 import { enrichNewLeadsWithShuidi } from "./collectors/shuidi.js";
+import { sendLeadSummary } from "./notifier.js";
 
 let currentRun = null;
 
@@ -96,6 +97,15 @@ async function runScanAsync(db, run, options = {}) {
       sourceStats["水滴信用"] = enrichResult.ok ? "已补充 3 条企业信息" : enrichResult.message;
     } catch (error) {
       sourceStats["水滴信用"] = error.message;
+    }
+  }
+
+  if (settings.notify?.enabled && newCount > 0) {
+    try {
+      const notifyResult = await sendLeadSummary(db, settings, { sourceStats });
+      log(notifyResult.ok ? `微信推送：${notifyResult.message}` : `微信推送：${notifyResult.message}`);
+    } catch (error) {
+      log(`微信推送失败：${error.message}`);
     }
   }
 

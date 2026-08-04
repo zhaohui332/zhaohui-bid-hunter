@@ -34,6 +34,16 @@ cd /Users/linjunjie/Documents/Codex/2026-08-04/2-pe-po-2/outputs/zhaohui-bid-hun
 如果想开机自动运行，双击 `安装开机自启.command`，之后不需要手动打开软件。安装后访问地址仍然是 `http://localhost:8710`。
 不需要开机自启时，双击 `停止开机自启.command` 即可。
 
+## 微信推送
+
+在“采集设置”页开启微信推送，支持三种方式：
+
+- PushPlus：填写 Token，最简单，扫码关注后即可。
+- Server酱：填写 SendKey。
+- 企业微信群机器人：填写 Webhook。
+
+每次采集有新线索时，会自动推送当天新增线索标题、来源、匹配分和原文链接。可以先点“发送测试”验证设置。
+
 ## 上传 GitHub 与部署阿里云
 
 项目已经附带部署脚本：
