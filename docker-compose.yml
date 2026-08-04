@@ -1,0 +1,11 @@
+services:
+  bid-hunter:
+    build: .
+    container_name: zhaohui-bid-hunter
+    restart: unless-stopped
+    ports:
+      - "8710:8710"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PORT=8710
